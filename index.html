@@ -1,0 +1,741 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Análisis Interactivo: Caída de la Primera República de Venezuela (1810-1812)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Visualization & Content Choices:
+        * Introducción: Text summary. Goal: Context. Method: HTML text.
+        * Frag. Políticas: Text summaries for Federalism, Indecision, Elections. Goal: Explain political weaknesses. Method: HTML text, "expand" for Table 1. Viz: Bar chart (Chart.js) for 'Provincias Leales vs. Rebeldes' (7 rebeldes, 3 leales). Interaction: Click to navigate sections, expand table. Justification: Clear presentation of complex political issues.
+        * Desc. Socioeconómico: Text for Lack of Support, Church, Economy. Goal: Show social and economic instability. Method: HTML text, "expand" for Table 2. Viz: Donut chart (Chart.js) for 'Composición Social Estimada' (Pardos Mayoría vs. Criollos Minoría - qualitative). Interaction: "Expand" for table. Justification: Highlights internal societal rifts and economic collapse.
+        * Def. Militares: Text for Army Weakness, Realist Campaigns, Miranda's Capitulation. Goal: Detail military aspect. Method: HTML text, "expand" for Table 3, HTML/CSS timeline for 'Eventos Militares Clave'. Interaction: Expand table. Justification: Shows military progression of collapse.
+        * Terremoto: Text on destruction, psychological impact. Goal: Explain impact of natural disaster. Method: HTML text, "expand" for Table 4. Viz: Bar chart (Chart.js) for 'Víctimas Estimadas del Terremoto' (Caracas min/max, Total max). Interaction: Expand table. Justification: Quantifies and explains the disaster's role.
+        * Conclusión: Text summary. Goal: Synthesize causes. Method: HTML text.
+        * All charts via Chart.js (Canvas). No SVG/Mermaid. Tables from report adapted. -->
+    <style>
+        body {
+            font-family: 'Georgia', 'Times New Roman', Times, serif;
+        }
+        .content-section {
+            display: none;
+        }
+        .content-section.active {
+            display: block;
+        }
+        .nav-link {
+            transition: color 0.3s ease, border-bottom-color 0.3s ease;
+            border-bottom: 2px solid transparent;
+        }
+        .nav-link.active, .nav-link:hover {
+            color: #f59e0b; /* amber-500 */
+            border-bottom-color: #f59e0b; /* amber-500 */
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .expand-button {
+            background-color: #0284c7; /* sky-600 */
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-top: 0.5rem;
+            margin-bottom: 0.5rem;
+            display: inline-block;
+        }
+        .expand-button:hover {
+            background-color: #0369a1; /* sky-700 */
+        }
+        .details-content {
+            background-color: #fef3c7; /* amber-100 */
+            border-left: 4px solid #0ea5e9; /* sky-500 */
+            padding: 1rem;
+            margin-top: 0.5rem;
+            border-radius: 0.25rem;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+        }
+        th, td {
+            border: 1px solid #d1d5db; /* stone-300 */
+            padding: 0.75rem;
+            text-align: left;
+            font-size: 0.875rem; /* text-sm */
+        }
+        th {
+            background-color: #e0f2fe; /* sky-100 */
+            color: #0c4a6e; /* sky-800 */
+        }
+        .timeline {
+            position: relative;
+            max-width: 100%;
+            margin: 2rem 0;
+        }
+        .timeline::after {
+            content: '';
+            position: absolute;
+            width: 6px;
+            background-color: #60a5fa; /* blue-400 */
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            margin-left: -3px;
+            border-radius: 3px;
+        }
+        .timeline-container {
+            padding: 10px 40px;
+            position: relative;
+            background-color: inherit;
+            width: 50%;
+        }
+        .timeline-container::after {
+            content: '';
+            position: absolute;
+            width: 25px;
+            height: 25px;
+            right: -12px;
+            background-color: #fef3c7; /* amber-100 */
+            border: 4px solid #3b82f6; /* blue-500 */
+            top: 15px;
+            border-radius: 50%;
+            z-index: 1;
+        }
+        .timeline-left {
+            left: 0;
+        }
+        .timeline-right {
+            left: 50%;
+        }
+        .timeline-right::after {
+            left: -13px;
+        }
+        .timeline-content {
+            padding: 1rem 1.5rem;
+            background-color: #f0f9ff; /* sky-50 */
+            position: relative;
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .timeline-content h3 {
+            color: #075985; /* sky-800 */
+        }
+        @media screen and (max-width: 768px) {
+            .timeline::after {
+                left: 31px;
+            }
+            .timeline-container {
+                width: 100%;
+                padding-left: 70px;
+                padding-right: 25px;
+            }
+            .timeline-container::before {
+                left: 60px;
+                border: medium solid white;
+                border-width: 10px 10px 10px 0;
+                border-color: transparent white transparent transparent;
+            }
+            .timeline-left::after, .timeline-right::after {
+                left: 18px;
+            }
+            .timeline-right {
+                left: 0%;
+            }
+        }
+    </style>
+</head>
+<body class="bg-amber-50 text-stone-700">
+
+    <header class="bg-sky-800 text-amber-50 p-4 shadow-md sticky top-0 z-50">
+        <div class="container mx-auto flex flex-col sm:flex-row justify-between items-center">
+            <h1 class="text-xl md:text-2xl font-bold mb-2 sm:mb-0">Caída de la Primera República de Venezuela</h1>
+            <nav id="mainNav" class="flex flex-wrap justify-center">
+                <a href="#introduccion" class="nav-link px-3 py-2">Introducción</a>
+                <a href="#politicas" class="nav-link px-3 py-2">Políticas</a>
+                <a href="#socioeconomicas" class="nav-link px-3 py-2">Socioeconómicas</a>
+                <a href="#militares" class="nav-link px-3 py-2">Militares</a>
+                <a href="#terremoto" class="nav-link px-3 py-2">Terremoto</a>
+                <a href="#conclusion" class="nav-link px-3 py-2">Conclusión</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container mx-auto p-4 md:p-8">
+        <section id="introduccion" class="content-section">
+            <h2 class="text-2xl md:text-3xl font-bold text-sky-700 mb-6 border-b-2 border-sky-200 pb-2">I. Introducción: La República Naciente y sus Desafíos</h2>
+            <p class="text-lg mb-4 leading-relaxed">
+                Esta sección introduce el contexto de la Primera República de Venezuela, desde su emergencia con el movimiento del 19 de abril de 1810 hasta su colapso en 1812. Se destaca la Declaración de Independencia y se plantea que la caída fue multifactorial, resultado de debilidades internas y presiones externas, haciendo a la joven república vulnerable desde su concepción. El objetivo es que el usuario comprenda el marco temporal y la complejidad inherente al primer intento de independencia.
+            </p>
+            <p class="mb-3">La Primera República de Venezuela emergió de un momento de profunda transformación política, iniciado con el movimiento del 19 de abril de 1810 en Caracas. En esa fecha, el Capitán General Vicente Emparan fue depuesto pacíficamente y reemplazado por una Junta Suprema de Gobierno, marcando el inicio del proceso independentista venezolano. Este periodo, que se extendió por poco más de dos años, fue testigo de la creación de una república confederada, cuya cúspide fue la Declaración de Independencia el 5 de julio de 1811 por un Congreso que representaba a siete provincias unidas: Caracas, Cumaná, Barinas, Margarita, Barcelona, Mérida y Trujillo.</p>
+            <p class="mb-3">Sin embargo, esta fase inicial de la autonomía venezolana fue efímera, culminando con la capitulación de Francisco de Miranda ante Domingo Monteverde el 25 de julio de 1812, lo que puso fin a la Primera República.</p>
+            <p class="mb-3">La caída de la Primera República de Venezuela no puede atribuirse a un único factor, sino que fue el resultado de una compleja interacción de fragilidades políticas e institucionales, un profundo descontento socioeconómico, deficiencias militares críticas y el impacto devastador de un desastre natural. Todos estos elementos se vieron exacerbados por divisiones internas y una implacable presión externa. La efervescencia revolucionaria que encendió el movimiento independentista no estuvo acompañada por una visión nacional unificada, estructuras institucionales robustas o una base social cohesionada, lo que hizo que la república naciente fuera inherentemente vulnerable desde sus inicios.</p>
+        </section>
+
+        <section id="politicas" class="content-section">
+            <h2 class="text-2xl md:text-3xl font-bold text-sky-700 mb-6 border-b-2 border-sky-200 pb-2">II. Fragilidades Políticas e Institucionales</h2>
+            <p class="text-lg mb-4 leading-relaxed">
+                Aquí se exploran las debilidades fundamentales en la estructura política y las instituciones de la Primera República. Se analiza cómo el sistema federal adoptado, la indecisión del gobierno y los problemas en los procesos electorales contribuyeron significativamente a su inestabilidad y eventual caída. Esta sección busca que el usuario entienda las fallas internas de gobernanza que minaron la República desde dentro.
+            </p>
+            
+            <h3 class="text-xl font-semibold text-sky-600 mt-6 mb-2">A. El Defectuoso Sistema Federal</h3>
+            <p class="mb-3">La Constitución de 1811 consagró un sistema federal que, según Simón Bolívar en su "Manifiesto de Cartagena," fue un error político primordial. Argumentó que era inaplicable para una sociedad en transición y en guerra, ya que el pueblo no estaba preparado para él y se requería un gobierno centralizado. Este sistema condujo a la fragmentación del poder, rivalidades entre provincias (Coro, Maracaibo y Guayana permanecieron leales a España) y falta de coordinación. Bolívar criticó la tolerancia por no someter a Coro, permitiéndole ser un bastión realista. La desunión impidió combatir eficazmente al Imperio español.</p>
+            <p class="mb-3">La adopción del federalismo, ideal ilustrado, chocó con la realidad de un estado naciente en guerra, creando un vacío de poder y exacerbando rivalidades. La fragmentación no solo debilitó, sino que creó oportunidades para los realistas, convirtiendo una elección política en una desventaja estratégica.</p>
+            <div class="my-6 chart-container h-72 md:h-80 max-h-80 w-full max-w-lg mx-auto">
+                <canvas id="provinciasChart"></canvas>
+            </div>
+            <p class="text-sm text-center text-stone-600 mb-4">Gráfico 1: División de las Provincias durante la Primera República. Siete provincias declararon la independencia, mientras que tres importantes (Coro, Maracaibo, Guayana) permanecieron leales a la Corona Española, evidenciando la fragmentación territorial y política.</p>
+
+            <h3 class="text-xl font-semibold text-sky-600 mt-6 mb-2">B. Indecisión Gubernamental y Falta de Liderazgo Centralizado</h3>
+            <p class="mb-3">El gobierno sufrió de indecisión y ausencia de un liderazgo ejecutivo fuerte. Bolívar lamentó la "tolerancia insensata" que llevó a la impunidad de crímenes y conspiraciones. Los repetidos indultos a conspiradores amenazaron la seguridad. Aunque Miranda fue nombrado Generalísimo tras el terremoto de 1812, fue "demasiado tarde". La renuencia a consolidar el poder, influenciada por ideales ilustrados, socavó la capacidad de respuesta a amenazas existenciales. Esta debilidad permitió que conspiraciones y bastiones realistas se fortalecieran.</p>
+
+            <h3 class="text-xl font-semibold text-sky-600 mt-6 mb-2">C. Procesos Electorales Defectuosos y Faccionalismo</h3>
+            <p class="mb-3">El sistema electoral para el Congreso de 1811 fue restrictivo (hombres mayores de 25, propietarios, renta mínima de 2.000 pesos), careciendo de amplia representación popular. Bolívar criticó que esto resultó en un gobierno con individuos "desafectos a la causa, ineptos o inmorales," fomentando un "espíritu de facción". El Congreso mismo estaba dividido entre "fidelistas" y "separatistas". La Primera República fue un proyecto de élite (oligarquía criolla blanca) con un "déficit democrático", vulnerable a la disidencia y manipulación. Las facciones internas obstaculizaron políticas y estrategias, actuando como una "herida autoinfligida".</p>
+            
+            <button class="expand-button" data-target="tabla1-details">Ver Tabla 1: Debilidades Político-Administrativas</button>
+            <div id="tabla1-details" class="details-content hidden">
+                <h4 class="text-lg font-semibold text-sky-700 mb-2">Tabla 1: Principales Debilidades Político-Administrativas de la Primera República</h4>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Debilidad</th>
+                            <th>Impacto Específico</th>
+                            <th>Elementos Relevantes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Sistema Federal Defectuoso</strong></td>
+                            <td>Fragmentación del poder, rivalidades regionales, autonomía excesiva de provincias y ciudades. Retraso en toma de decisiones militares.</td>
+                            <td>Constitución Federal de 1811, crítica de Bolívar, negativa de Coro, Maracaibo y Guayana a unirse, rivalidad Caracas vs. provincias.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Indecisión Gubernamental</strong></td>
+                            <td>Falta de liderazgo ejecutivo centralizado, "tolerancia insensata" que fomenta la impunidad y conspiraciones. Nombramiento tardío de Miranda.</td>
+                            <td>Crítica de Bolívar a la inacción ejecutiva, clemencia criminal, avance de Monteverde.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Procesos Electorales Defectuosos y Faccionalismo</strong></td>
+                            <td>Participación limitada (élite criolla), gobierno compuesto por individuos ineptos o inmorales, espíritu de facción, divisiones entre "fidelistas" y "separatistas".</td>
+                            <td>Restricciones electorales (propiedad, renta), crítica de Bolívar a los votantes, facciones en el Congreso.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="mt-8 p-4 bg-sky-50 rounded-lg shadow-inner">
+                <h4 class="text-xl font-bold text-sky-700 mb-4">✨ Pregunta al Historiador Virtual sobre las Fragilidades Políticas</h4>
+                <textarea id="politicas-question" class="w-full p-3 border border-sky-200 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-300 mb-3" rows="3" placeholder="Ej: ¿Cómo afectó el federalismo la defensa militar?"></textarea>
+                <button class="generate-answer-button bg-sky-600 hover:bg-sky-700 text-white font-bold py-2 px-4 rounded-md transition duration-300" data-section="politicas">Generar Respuesta</button>
+                <div id="politicas-response" class="mt-4 p-3 bg-white border border-sky-100 rounded-md text-stone-800 hidden">
+                    <p class="text-sm text-stone-600">Cargando respuesta...</p>
+                </div>
+                <div id="politicas-loading" class="mt-4 text-center hidden">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-sky-500 mx-auto"></div>
+                    <p class="text-sky-600 text-sm mt-2">Pensando como historiador...</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="socioeconomicas" class="content-section">
+            <h2 class="text-2xl md:text-3xl font-bold text-sky-700 mb-6 border-b-2 border-sky-200 pb-2">III. Descontento Socioeconómico y Debilidades Estructurales</h2>
+            <p class="text-lg mb-4 leading-relaxed">
+                Esta sección aborda las profundas divisiones sociales y la crisis económica que desestabilizaron la Primera República. Se examina la falta de apoyo popular, especialmente de las castas bajas, la influyente oposición de la Iglesia Católica y la paralización económica agravada por una mala gestión. El objetivo es mostrar cómo los problemas sociales y económicos internos crearon un terreno fértil para el colapso.
+            </p>
+
+            <h3 class="text-xl font-semibold text-sky-600 mt-6 mb-2">A. Falta de Apoyo Popular Generalizado</h3>
+            <p class="mb-3">La República no logró asegurar el apoyo de la población, especialmente de las castas bajas como los "Pardos" (mayoría social), quienes no simpatizaban con los líderes criollos blancos. El gobierno fue percibido como elitista. El resentimiento histórico de negros y pardos llevó a deserciones hacia los realistas. Para la mayoría, la República era una "utopía" con privilegios para minorías. La élite criolla temía que la independencia causara una rebelión social interna, viendo a veces la monarquía española como más segura. Este movimiento fue una "revolución desde arriba" que no abordó desigualdades, dejando a la República vulnerable a la contramovilización realista.</p>
+            <div class="my-6 chart-container h-72 md:h-80 max-h-80 w-full max-w-md mx-auto">
+                <canvas id="socialChart"></canvas>
+            </div>
+            <p class="text-sm text-center text-stone-600 mb-4">Gráfico 2: Estimación cualitativa de la composición social. Los "Pardos y otras castas" constituían la mayoría de la población, muchos de los cuales no se identificaron con la élite criolla que lideraba la independencia.</p>
+
+            <h3 class="text-xl font-semibold text-sky-600 mt-6 mb-2">B. Influencia de la Iglesia Católica</h3>
+            <p class="mb-3">La Iglesia Católica ejerció una poderosa influencia contraria a la independencia, especialmente tras el terremoto de 1812, explotado por el clero realista como "castigo divino" por la rebelión. Esto desmoralizó a la población religiosa y la volvió contra la República. La Iglesia se transformó en un "arma ideológica" para los realistas, convirtiendo el desastre natural en una herramienta de desmoralización política.</p>
+
+            <h3 class="text-xl font-semibold text-sky-600 mt-6 mb-2">C. Paralización Económica y Mala Gestión</h3>
+            <p class="mb-3">La República enfrentó una parálisis comercial, inestabilidad financiera y mala gestión. La guerra suspendió el comercio exterior, desplomando precios de cacao y café. El comercio interno sufrió por el descrédito del papel moneda. Salió mucho dinero metálico del país. El gobierno introdujo papel moneda sin respaldo, generando desconfianza, rechazo y pérdida de valor. Hubo inflación desenfrenada, escasez de provisiones y hambruna en ciudades como Caracas, exacerbada por la especulación. El gobierno fue incapaz de recaudar impuestos y derrochó fondos en salarios excesivos, agotando las arcas públicas. Las políticas económicas, como la circulación forzada de papel moneda y la abolición de la esclavitud para reclutamiento, alienaron a varios sectores y llevaron a muchos a apoyar a los españoles.</p>
+
+            <button class="expand-button" data-target="tabla2-details">Ver Tabla 2: Factores Socioeconómicos</button>
+            <div id="tabla2-details" class="details-content hidden">
+                <h4 class="text-lg font-semibold text-sky-700 mb-2">Tabla 2: Factores Socioeconómicos que Contribuyeron a la Caída de la República</h4>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Factor</th>
+                            <th>Manifestación Específica</th>
+                            <th>Elementos Relevantes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Falta de Apoyo Popular</strong></td>
+                            <td>Alienación de Pardos y castas bajas, gobierno percibido como elitista, temor criollo a la anarquía social.</td>
+                            <td>Desinterés de los Pardos, miedo criollo a la rebelión de esclavos/indígenas, deserciones hacia fuerzas realistas.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Influencia de la Iglesia Católica</strong></td>
+                            <td>Oposición activa a la independencia, explotación del terremoto de 1812 como "castigo divino".</td>
+                            <td>Discurso de la Iglesia post-terremoto, desmoralización popular.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Parálisis y Mala Gestión Económica</strong></td>
+                            <td>Cese del comercio exterior e interior, salida de moneda metálica, emisión de papel moneda sin respaldo.</td>
+                            <td>Caída de precios (cacao, café), desconfianza en el papel moneda, acaparamiento, inflación, hambruna en Caracas.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Mala Administración de Rentas Públicas</strong></td>
+                            <td>Incapacidad para recaudar impuestos, derroche en salarios de funcionarios innecesarios.</td>
+                            <td>Crítica de Bolívar al gasto público, agotamiento de arcas.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="mt-8 p-4 bg-sky-50 rounded-lg shadow-inner">
+                <h4 class="text-xl font-bold text-sky-700 mb-4">✨ Pregunta al Historiador Virtual sobre el Descontento Socioeconómico</h4>
+                <textarea id="socioeconomicas-question" class="w-full p-3 border border-sky-200 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-300 mb-3" rows="3" placeholder="Ej: ¿Por qué los pardos no apoyaron la República?"></textarea>
+                <button class="generate-answer-button bg-sky-600 hover:bg-sky-700 text-white font-bold py-2 px-4 rounded-md transition duration-300" data-section="socioeconomicas">Generar Respuesta</button>
+                <div id="socioeconomicas-response" class="mt-4 p-3 bg-white border border-sky-100 rounded-md text-stone-800 hidden">
+                    <p class="text-sm text-stone-600">Cargando respuesta...</p>
+                </div>
+                <div id="socioeconomicas-loading" class="mt-4 text-center hidden">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-sky-500 mx-auto"></div>
+                    <p class="text-sky-600 text-sm mt-2">Pensando como historiador...</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="militares" class="content-section">
+            <h2 class="text-2xl md:text-3xl font-bold text-sky-700 mb-6 border-b-2 border-sky-200 pb-2">IV. Deficiencias Militares y el Resurgimiento Realista</h2>
+            <p class="text-lg mb-4 leading-relaxed">
+                Este apartado detalla las debilidades del aparato militar republicano y la efectividad de las campañas realistas. Se analiza la inexperiencia del ejército patriota, el impacto de las estrategias realistas, incluyendo el apoyo externo y la explotación de divisiones internas, y el significado de la Capitulación de Miranda. El objetivo es que el usuario comprenda cómo las fallas militares y la fortaleza del adversario sellaron el destino de la República.
+            </p>
+
+            <h3 class="text-xl font-semibold text-sky-600 mt-6 mb-2">A. Debilidades del Ejército Republicano</h3>
+            <p class="mb-3">El ejército republicano carecía de experiencia, disciplina y organización, mermando su capacidad defensiva. Bolívar criticó la ausencia de una fuerza armada permanente y centralizada. La Academia de Matemáticas Militares no proveyó el liderazgo necesario. La dependencia de milicias indisciplinadas agotó el tesoro y alienó a ciudadanos al afectar la agricultura. Hubo oposición interna a formar tropas veteranas. Esta asimetría militar con los experimentados realistas, como Monteverde, significó que la República estaba mal equipada para la guerra. Las deficiencias militares fueron consecuencia de debilidades políticas (federalismo), sociales (falta de apoyo popular) y económicas (mala gestión).</p>
+
+            <h3 class="text-xl font-semibold text-sky-600 mt-6 mb-2">B. Campañas Realistas Efectivas y Apoyo</h3>
+            <p class="mb-3">Las fuerzas realistas fueron efectivas, beneficiándose de divisiones internas y ayuda externa. Provincias leales como Coro sirvieron de base y recibieron dinero y armas de España. La Regencia española bloqueó las costas venezolanas. La llegada de Domingo de Monteverde en febrero de 1812 fue un punto de inflexión; restableció el control español y ganó voluntarios. La caída de Puerto Cabello en junio de 1812, bajo mando de Bolívar, fue un golpe crítico, perdiéndose arsenales vitales. Los realistas explotaron divisiones sociales, prometiendo libertad a esclavos e igualdad a pardos, lo que llevó a deserciones patriotas. La caída de Puerto Cabello desencadenó un "efecto dominó".</p>
+            
+            <h4 class="text-lg font-semibold text-sky-700 my-4">Línea de Tiempo: Eventos Militares Clave (1812)</h4>
+            <div class="timeline">
+                <div class="timeline-container timeline-left">
+                    <div class="timeline-content">
+                        <h3 class="font-semibold">8 de Febrero</h3>
+                        <p class="text-sm">Llegada de Domingo de Monteverde a Coro. Inicia la efectiva campaña realista de reconquista.</p>
+                    </div>
+                </div>
+                <div class="timeline-container timeline-right">
+                    <div class="timeline-content">
+                        <h3 class="font-semibold">26 de Marzo</h3>
+                        <p class="text-sm">Terremoto devastador. Aunque no es un evento militar, impacta severamente la capacidad y moral republicana.</p>
+                    </div>
+                </div>
+                <div class="timeline-container timeline-left">
+                    <div class="timeline-content">
+                        <h3 class="font-semibold">30 de Junio</h3>
+                        <p class="text-sm">Caída de Puerto Cabello. Pérdida estratégica crucial para los patriotas, comandada por Bolívar.</p>
+                    </div>
+                </div>
+                <div class="timeline-container timeline-right">
+                    <div class="timeline-content">
+                        <h3 class="font-semibold">25 de Julio</h3>
+                        <p class="text-sm">Capitulación de San Mateo. Francisco de Miranda se rinde ante Monteverde, fin de la Primera República.</p>
+                    </div>
+                </div>
+                 <div class="timeline-container timeline-left">
+                    <div class="timeline-content">
+                        <h3 class="font-semibold">30 de Julio</h3>
+                        <p class="text-sm">Arresto de Miranda en La Guaira por oficiales patriotas, incluyendo a Bolívar.</p>
+                    </div>
+                </div>
+            </div>
+
+
+            <h3 class="text-xl font-semibold text-sky-600 mt-6 mb-2">C. La Capitulación de Francisco de Miranda</h3>
+            <p class="mb-3">Enfrentado a una situación militar insostenible (deserciones, impacto del terremoto, impopularidad, avance de Monteverde), Miranda firmó la Capitulación de San Mateo el 25 de julio de 1812. Buscaba evitar mayor derramamiento de sangre. Los realistas violaron los términos del acuerdo. La capitulación fue vista como traición por algunos patriotas, incluyendo a Bolívar, quien arrestó a Miranda en La Guaira. Este acto llevó a la entrega de Miranda a los realistas y su muerte en prisión. Monteverde concedió pasaporte a Bolívar. La capitulación y captura de Miranda erosionaron la confianza, desmoralizaron la causa y eliminaron al líder militar más experimentado, evidenciando profundas divisiones internas.</p>
+
+            <button class="expand-button" data-target="tabla3-details">Ver Tabla 3: Debilidades Militares y Ventajas Realistas</button>
+            <div id="tabla3-details" class="details-content hidden">
+                <h4 class="text-lg font-semibold text-sky-700 mb-2">Tabla 3: Debilidades Militares Clave y Ventajas Realistas</h4>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Categoría</th>
+                            <th>Punto Específico</th>
+                            <th>Impacto</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Debilidades Republicanas</strong></td>
+                            <td>Inexperiencia y falta de profesionalismo de las milicias.</td>
+                            <td>Incapacidad para establecer un ejército permanente, liderazgo militar inexperto, agotamiento del tesoro, alienación ciudadana.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Ventajas Realistas</strong></td>
+                            <td>Persistencia de bastiones realistas y apoyo externo.</td>
+                            <td>Bases cruciales para operaciones, suministro de armas y dinero, bloqueo costero.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Campañas Realistas Efectivas</strong></td>
+                            <td>Campaña de reconquista de Domingo Monteverde.</td>
+                            <td>Restauración sistemática del control español, reclutamiento continuo de voluntarios, derrota de tropas republicanas.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Pérdidas Estratégicas Clave</strong></td>
+                            <td>Caída de Puerto Cabello.</td>
+                            <td>Pérdida de recursos militares vitales y fortaleza estratégica, crisis de confianza en el liderazgo patriota.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Capitulación de Miranda</strong></td>
+                            <td>Firma de la Capitulación de San Mateo.</td>
+                            <td>Fin definitivo de la Primera República, pérdida de la causa independentista, golpe de estado interno.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="mt-8 p-4 bg-sky-50 rounded-lg shadow-inner">
+                <h4 class="text-xl font-bold text-sky-700 mb-4">✨ Pregunta al Historiador Virtual sobre las Deficiencias Militares</h4>
+                <textarea id="militares-question" class="w-full p-3 border border-sky-200 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-300 mb-3" rows="3" placeholder="Ej: ¿Cuál fue la importancia de la caída de Puerto Cabello?"></textarea>
+                <button class="generate-answer-button bg-sky-600 hover:bg-sky-700 text-white font-bold py-2 px-4 rounded-md transition duration-300" data-section="militares">Generar Respuesta</button>
+                <div id="militares-response" class="mt-4 p-3 bg-white border border-sky-100 rounded-md text-stone-800 hidden">
+                    <p class="text-sm text-stone-600">Cargando respuesta...</p>
+                </div>
+                <div id="militares-loading" class="mt-4 text-center hidden">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-sky-500 mx-auto"></div>
+                    <p class="text-sky-600 text-sm mt-2">Pensando como historiador...</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="terremoto" class="content-section">
+            <h2 class="text-2xl md:text-3xl font-bold text-sky-700 mb-6 border-b-2 border-sky-200 pb-2">V. El Impacto Devastador del Terremoto de 1812</h2>
+            <p class="text-lg mb-4 leading-relaxed">
+                Esta sección se centra en el catastrófico terremoto del 26 de marzo de 1812 y sus profundas consecuencias. Se describe la destrucción física, las pérdidas humanas, y cómo este desastre natural fue explotado por los realistas, exacerbando las debilidades existentes de la República. El objetivo es que el usuario valore el terremoto no solo como una tragedia, sino como un factor crítico que aceleró el colapso.
+            </p>
+            <p class="mb-3">El terremoto del 26 de marzo de 1812 (Jueves Santo) devastó bastiones republicanos como Caracas, La Guaira y Mérida, con entre 14.000 y 26.000 muertes. Ciudades monárquicas resultaron relativamente ilesas. Unidades militares republicanas fueron destruidas. Frailes realistas predicaron que era un "castigo divino" por la rebelión, desmoralizando a la población y al ejército. Bolívar desafió esta narrativa: "Si la naturaleza se opone lucharemos contra ella y haremos que nos obedezca".</p>
+            <p class="mb-3">El terremoto alteró la guerra. Monteverde explotó el desastre para su campaña. Expuso la incapacidad de la República para reconstruir o rearmar su ejército debido a arcas agotadas, forzando una emisión descontrolada de papel moneda que arruinó más la economía. Aunque natural, su impacto fue amplificado por el momento y la propaganda realista, transformando una catástrofe física en un arma psicológica. No causó la caída por sí solo, pero empujó a un estado frágil al abismo, exponiendo debilidades preexistentes.</p>
+            <div class="my-6 chart-container h-72 md:h-80 max-h-80 w-full max-w-lg mx-auto">
+                <canvas id="terremotoChart"></canvas>
+            </div>
+            <p class="text-sm text-center text-stone-600 mb-4">Gráfico 3: Estimación de víctimas del terremoto de 1812. El sismo causó una gran mortandad, especialmente en Caracas, un importante bastión republicano.</p>
+
+            <button class="expand-button" data-target="tabla4-details">Ver Tabla 4: Impacto del Terremoto de 1812</button>
+            <div id="tabla4-details" class="details-content hidden">
+                <h4 class="text-lg font-semibold text-sky-700 mb-2">Tabla 4: Impacto del Terremoto de 1812</h4>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Dimensión del Impacto</th>
+                            <th>Efecto Específico</th>
+                            <th>Elementos Relevantes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Destrucción Física y Pérdidas Humanas</strong></td>
+                            <td>Ciudades republicanas devastadas (Caracas, La Guaira, Mérida, etc.), miles de muertos, destrucción de unidades militares.</td>
+                            <td>Daños en Caracas, La Guaira, Mérida; 14.000-26.000 muertes; unidades militares sepultadas; contraste con ciudades realistas ilesas.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Impacto Psicológico y Religioso</strong></td>
+                            <td>Explotación por la Iglesia Católica realista como "castigo divino".</td>
+                            <td>Predicaciones de frailes y sacerdotes; desmoralización de la población y el ejército patriota; desafío de Bolívar.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Ventaja Estratégica para Realistas</strong></td>
+                            <td>Monteverde explota el desastre para avanzar y reclutar.</td>
+                            <td>Monteverde aprovecha el "asombro" para su reconquista; caída de la moral republicana.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Impacto Económico Agravado</strong></td>
+                            <td>Incapacidad de reconstruir ciudades y ejército, emisión descontrolada de papel moneda.</td>
+                            <td>Agotamiento de arcas, espiral inflacionaria, ruina económica.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="mt-8 p-4 bg-sky-50 rounded-lg shadow-inner">
+                <h4 class="text-xl font-bold text-sky-700 mb-4">✨ Pregunta al Historiador Virtual sobre el Terremoto de 1812</h4>
+                <textarea id="terremoto-question" class="w-full p-3 border border-sky-200 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-300 mb-3" rows="3" placeholder="Ej: ¿Cómo la Iglesia usó el terremoto?"></textarea>
+                <button class="generate-answer-button bg-sky-600 hover:bg-sky-700 text-white font-bold py-2 px-4 rounded-md transition duration-300" data-section="terremoto">Generar Respuesta</button>
+                <div id="terremoto-response" class="mt-4 p-3 bg-white border border-sky-100 rounded-md text-stone-800 hidden">
+                    <p class="text-sm text-stone-600">Cargando respuesta...</p>
+                </div>
+                <div id="terremoto-loading" class="mt-4 text-center hidden">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-sky-500 mx-auto"></div>
+                    <p class="text-sky-600 text-sm mt-2">Pensando como historiador...</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="conclusion" class="content-section">
+            <h2 class="text-2xl md:text-3xl font-bold text-sky-700 mb-6 border-b-2 border-sky-200 pb-2">VI. Conclusión: Una Confluencia de Catástrofes</h2>
+            <p class="text-lg mb-4 leading-relaxed">
+                La conclusión sintetiza las múltiples causas que llevaron a la caída de la Primera República. Se reitera que no fue un solo factor, sino una compleja interacción de debilidades políticas, socioeconómicas, militares, y el devastador terremoto. Esta sección busca ofrecer una reflexión final sobre las lecciones aprendidas de este primer fracaso independentista, subrayando la importancia de la unidad y la pragmática construcción del estado.
+            </p>
+            <p class="mb-3">La caída de la Primera República de Venezuela fue resultado de una compleja red de fragilidades políticas, descontento socioeconómico, deficiencias militares y el impacto del terremoto de 1812. El estado naciente carecía de madurez institucional, cohesión social y fuerza militar para resistir divisiones internas y fuerzas contrarrevolucionarias.</p>
+            <p class="mb-3">La observación de Bolívar, "Nuestra división y no las armas españolas nos volvieron a la esclavitud", encapsula la lección central. La fragmentación interna, divisiones sociales, mala gestión económica e inexperiencia militar fueron más perjudiciales que las armas españolas. El terremoto fue un catalizador, explotado por los realistas.</p>
+            <p class="mb-3">El colapso proporcionó lecciones para esfuerzos independentistas posteriores, subrayando la necesidad de autoridad centralizada, ejército profesional, apoyo popular y sólida gestión económica. Demostró que la independencia requería no solo una declaración, sino un arduo proceso de construcción nacional y gobernanza pragmática.</p>
+
+            <div class="mt-8 p-4 bg-sky-50 rounded-lg shadow-inner">
+                <h4 class="text-xl font-bold text-sky-700 mb-4">✨ Pregunta al Historiador Virtual sobre las Lecciones de la Caída</h4>
+                <textarea id="conclusion-question" class="w-full p-3 border border-sky-200 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-300 mb-3" rows="3" placeholder="Ej: ¿Qué lecciones se aprendieron para futuras repúblicas?"></textarea>
+                <button class="generate-answer-button bg-sky-600 hover:bg-sky-700 text-white font-bold py-2 px-4 rounded-md transition duration-300" data-section="conclusion">Generar Respuesta</button>
+                <div id="conclusion-response" class="mt-4 p-3 bg-white border border-sky-100 rounded-md text-stone-800 hidden">
+                    <p class="text-sm text-stone-600">Cargando respuesta...</p>
+                </div>
+                <div id="conclusion-loading" class="mt-4 text-center hidden">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-sky-500 mx-auto"></div>
+                    <p class="text-sky-600 text-sm mt-2">Pensando como historiador...</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="text-center p-4 mt-8 text-sm text-stone-600 border-t border-stone-300">
+        <p>&copy; 2024 Análisis Interactivo. Aplicación desarrollada para la exploración de la historia venezolana.</p>
+    </footer>
+
+    <script>
+        const navLinks = document.querySelectorAll('#mainNav a');
+        const contentSections = document.querySelectorAll('.content-section');
+        const expandButtons = document.querySelectorAll('.expand-button');
+        const generateAnswerButtons = document.querySelectorAll('.generate-answer-button');
+
+        function showSection(hash) {
+            contentSections.forEach(section => {
+                if ('#' + section.id === hash) {
+                    section.classList.add('active');
+                } else {
+                    section.classList.remove('active');
+                }
+            });
+            navLinks.forEach(link => {
+                if (link.getAttribute('href') === hash) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+            window.scrollTo(0, 0); // Scroll to top of page
+        }
+
+        navLinks.forEach(link => {
+            link.addEventListener('click', (event) => {
+                event.preventDefault();
+                const targetId = link.getAttribute('href');
+                history.pushState(null, null, targetId);
+                showSection(targetId);
+            });
+        });
+
+        expandButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const targetId = button.dataset.target;
+                const detailsContent = document.getElementById(targetId);
+                detailsContent.classList.toggle('hidden');
+                button.textContent = detailsContent.classList.contains('hidden') ? 'Ver Tabla ' + targetId.charAt(5) + ': ' + button.textContent.split(': ')[1] : 'Ocultar Tabla ' + targetId.charAt(5);
+            });
+        });
+        
+        window.addEventListener('popstate', () => {
+            showSection(window.location.hash || '#introduccion');
+        });
+
+        // Initial section display
+        showSection(window.location.hash || '#introduccion');
+
+        // Chart.js implementations
+        // Chart 1: Provincias
+        const provinciasCtx = document.getElementById('provinciasChart');
+        if (provinciasCtx) {
+            new Chart(provinciasCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Provincias Independentistas', 'Provincias Leales a España'],
+                    datasets: [{
+                        label: 'Número de Provincias',
+                        data: [7, 3],
+                        backgroundColor: ['#38bdf8', '#fbbf24'], // sky-400, amber-400
+                        borderColor: ['#0ea5e9', '#f59e0b'], // sky-500, amber-500
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        title: {
+                            display: true,
+                            text: 'División Política de las Provincias',
+                            font: { size: 16, family: 'Georgia' },
+                            color: '#0c4a6e' // sky-800
+                        }
+                    }
+                }
+            });
+        }
+
+        // Chart 2: Social Composition (Qualitative)
+        const socialCtx = document.getElementById('socialChart');
+        if (socialCtx) {
+            new Chart(socialCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Pardos y otras castas (Mayoría estimada)', 'Criollos Blancos (Minoría estimada)'],
+                    datasets: [{
+                        label: 'Composición Social Estimada',
+                        data: [70, 30], // Representational values
+                        backgroundColor: ['#78716c', '#f59e0b'], // stone-500, amber-500
+                        borderColor: ['#57534e', '#d97706'], // stone-600, amber-600
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                     plugins: {
+                        legend: { position: 'top'},
+                        title: {
+                            display: true,
+                            text: 'Composición Social Estimada',
+                            font: { size: 16, family: 'Georgia' },
+                            color: '#0c4a6e' // sky-800
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Chart 3: Terremoto Víctimas
+        const terremotoCtx = document.getElementById('terremotoChart');
+        if (terremotoCtx) {
+            new Chart(terremotoCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Caracas (min. est.)', 'Caracas (máx. est.)', 'Total Afectadas (máx. est.)'],
+                    datasets: [{
+                        label: 'Número Estimado de Víctimas',
+                        data: [14000, 20000, 26000],
+                        backgroundColor: ['#f87171', '#ef4444', '#dc2626'], // red-400, red-500, red-600
+                        borderColor: ['#dc2626', '#b91c1c', '#991b1b'], // red-600, red-700, red-800
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    },
+                    plugins: {
+                         legend: { display: false },
+                        title: {
+                            display: true,
+                            text: 'Víctimas Estimadas del Terremoto de 1812',
+                            font: { size: 16, family: 'Georgia' },
+                            color: '#0c4a6e' // sky-800
+                        }
+                    }
+                }
+            });
+        }
+
+        // Gemini API Integration
+        generateAnswerButtons.forEach(button => {
+            button.addEventListener('click', async () => {
+                const sectionId = button.dataset.section;
+                const questionInput = document.getElementById(`${sectionId}-question`);
+                const responseDiv = document.getElementById(`${sectionId}-response`);
+                const loadingDiv = document.getElementById(`${sectionId}-loading`);
+                const userQuestion = questionInput.value.trim();
+
+                if (!userQuestion) {
+                    responseDiv.textContent = 'Por favor, introduce una pregunta.';
+                    responseDiv.classList.remove('hidden');
+                    return;
+                }
+
+                responseDiv.classList.add('hidden');
+                loadingDiv.classList.remove('hidden');
+                responseDiv.innerHTML = ''; // Clear previous response
+
+                let sectionContext = '';
+                switch (sectionId) {
+                    case 'politicas':
+                        sectionContext = `Actúa como un historiador experto en la Primera República de Venezuela. Basándote en la información sobre las fragilidades políticas e institucionales de este período (sistema federal defectuoso, indecisión gubernamental, procesos electorales defectuosos y faccionalismo), responde a la siguiente pregunta: `;
+                        break;
+                    case 'socioeconomicas':
+                        sectionContext = `Actúa como un historiador experto en la Primera República de Venezuela. Basándote en la información sobre el descontento socioeconómico y las debilidades estructurales (falta de apoyo popular, influencia de la Iglesia Católica, paralización económica y mala gestión), responde a la siguiente pregunta: `;
+                        break;
+                    case 'militares':
+                        sectionContext = `Actúa como un historiador experto en la Primera República de Venezuela. Basándote en la información sobre las deficiencias militares y el resurgimiento realista (debilidades del ejército republicano, campañas realistas efectivas, la Capitulación de Francisco de Miranda), responde a la siguiente pregunta: `;
+                        break;
+                    case 'terremoto':
+                        sectionContext = `Actúa como un historiador experto en la Primera República de Venezuela. Basándote en la información sobre el impacto devastador del terremoto de 1812 (destrucción física, impacto psicológico y religioso, ventaja estratégica para realistas, impacto económico agravado), responde a la siguiente pregunta: `;
+                        break;
+                    case 'conclusion':
+                        sectionContext = `Actúa como un historiador experto en la Primera República de Venezuela. Basándote en la información sobre las causas de su caída y las lecciones aprendidas, responde a la siguiente pregunta: `;
+                        break;
+                }
+
+                const prompt = sectionContext + userQuestion;
+                let chatHistory = [];
+                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+                const payload = { contents: chatHistory };
+                const apiKey = ""; 
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    const result = await response.json();
+
+                    if (result.candidates && result.candidates.length > 0 &&
+                        result.candidates[0].content && result.candidates[0].content.parts &&
+                        result.candidates[0].content.parts.length > 0) {
+                        const text = result.candidates[0].content.parts[0].text;
+                        responseDiv.textContent = text;
+                    } else {
+                        responseDiv.textContent = 'No se pudo generar una respuesta. Inténtalo de nuevo.';
+                        console.error('Unexpected API response structure:', result);
+                    }
+                } catch (error) {
+                    responseDiv.textContent = 'Error al conectar con el historiador virtual. Por favor, inténtalo más tarde.';
+                    console.error('Error fetching from Gemini API:', error);
+                } finally {
+                    loadingDiv.classList.add('hidden');
+                    responseDiv.classList.remove('hidden');
+                }
+            });
+        });
+
+    </script>
+</body>
+</html>
